@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yunju's Kitchen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2; --warm: #F5EFE6; --olive: #6B7A4E;
+    --olive-light: #8A9B63; --rust: #B85C38; --rust-light: #D4785A;
+    --charcoal: #2D2D2A; --mid: #6E6B65; --border: #DDD5C8; --tag-bg: #EDE8E0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--cream); font-family: 'Noto Sans KR', sans-serif; color: var(--charcoal); min-height: 100vh; }
+
+  header { background: var(--charcoal); color: var(--cream); padding: 44px 32px 32px; text-align: center; position: relative; overflow: hidden; }
+  header::before { content:''; position:absolute; top:-60px; left:-60px; width:200px; height:200px; border-radius:50%; background:rgba(107,122,78,0.18); }
+  header::after { content:''; position:absolute; bottom:-80px; right:-40px; width:240px; height:240px; border-radius:50%; background:rgba(184,92,56,0.13); }
+  .header-label { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--olive-light); margin-bottom:10px; font-weight:500; position:relative; z-index:1; }
+  header h1 { font-family:'Playfair Display',serif; font-size:clamp(28px,6vw,48px); font-weight:400; position:relative; z-index:1; }
+  header h1 em { font-style:italic; color:var(--rust-light); }
+  .header-sub { font-size:11px; color:rgba(250,247,242,0.45); letter-spacing:2px; margin-top:10px; position:relative; z-index:1; }
+
+  /* NAV */
+  .nav-tabs { display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:2px solid var(--border); background:white; padding:0 12px; }
+  .nav-tabs::-webkit-scrollbar { display:none; }
+  .nav-tab { padding:13px 14px; border:none; border-bottom:3px solid transparent; background:none; font-family:'Noto Sans KR',sans-serif; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; color:var(--mid); transition:all 0.2s; margin-bottom:-2px; }
+  .nav-tab.active { color:var(--charcoal); border-bottom-color:var(--rust); }
+  .nav-tab:hover { color:var(--charcoal); }
+
+  /* PAGES */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* GRID */
+  .grid { padding:20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr)); gap:16px; }
+
+  /* SUB-HEAD */
+  .sub-head { grid-column:1/-1; display:flex; align-items:center; gap:10px; padding:12px 0 4px; }
+  .sub-label { font-size:11px; font-weight:500; color:var(--mid); letter-spacing:1px; white-space:nowrap; padding:4px 12px; background:var(--warm); border-radius:12px; border:1px solid var(--border); }
+  .sub-line { flex:1; height:1px; background:var(--border); }
+
+  /* CARD */
+  .card { background:white; border-radius:12px; border:1px solid var(--border); overflow:hidden; display:flex; flex-direction:column; transition:transform 0.18s, box-shadow 0.18s; }
+  .card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(45,45,42,0.1); }
+  .card-top { padding:16px 18px 12px; border-bottom:1px solid var(--warm); }
+  .card-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+  .tag { font-size:10px; padding:2px 8px; border-radius:8px; background:var(--tag-bg); color:var(--mid); font-weight:500; }
+  .tag.simple { background:#E8F0D8; color:#4A6030; }
+  .tag.creamy { background:#FFF3DC; color:#7A5500; }
+  .tag.spicy  { background:#FFE0DC; color:#8B2A20; }
+  .tag.umami  { background:#E0EEFF; color:#1A4A8A; }
+  .tag.light  { background:#D8EEE0; color:#2E6048; }
+  .tag.fusion { background:#F0E8FF; color:#5A2E8A; }
+  .tag.onepan { background:#FFF0E0; color:#7A4500; }
+  .card-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--charcoal); margin-bottom:3px; line-height:1.3; }
+  .card-key { font-size:11px; color:var(--olive); font-weight:500; }
+  .card-body { padding:13px 18px 14px; flex:1; }
+  .ing-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--mid); margin-bottom:7px; }
+  .ings { display:flex; flex-wrap:wrap; gap:5px; }
+  .ing { font-size:12px; padding:3px 9px; background:var(--warm); border-radius:6px; color:var(--charcoal); }
+
+  /* DETAIL */
+  .card-detail { display:none; padding:0 18px 16px; border-top:1px dashed var(--border); }
+  .card-detail.open { display:block; }
+  .steps { list-style:none; counter-reset:s; display:flex; flex-direction:column; gap:7px; margin-top:14px; }
+  .steps li { counter-increment:s; font-size:12.5px; line-height:1.6; display:flex; gap:10px; }
+  .steps li::before { content:counter(s); min-width:20px; height:20px; background:var(--rust); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:500; flex-shrink:0; margin-top:2px; }
+  .tip { background:#FFF8F0; border-left:3px solid var(--rust-light); padding:9px 12px; border-radius:0 8px 8px 0; margin-top:12px; font-size:12px; color:var(--mid); line-height:1.5; }
+  .toggle-btn { width:100%; background:none; border:1px solid var(--border); border-radius:8px; padding:8px; cursor:pointer; font-size:11px; color:var(--mid); margin-top:12px; font-family:'Noto Sans KR',sans-serif; transition:background 0.15s; }
+  .toggle-btn:hover { background:var(--warm); color:var(--charcoal); }
+
+  footer { text-align:center; padding:32px 20px; font-size:11px; color:var(--border); letter-spacing:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">My Recipe Collection</div>
+  <h1>Yunju's <em>Kitchen</em></h1>
+  <div class="header-sub">냉장고 재료로 만드는 나만의 레시피</div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('rice',this)">🍚 밥·죽</button>
+  <button class="nav-tab" onclick="showPage('noodle',this)">🍝 면·파스타</button>
+  <button class="nav-tab" onclick="showPage('soup',this)">🍲 국·찌개</button>
+  <button class="nav-tab" onclick="showPage('main',this)">🥩 메인반찬</button>
+  <button class="nav-tab" onclick="showPage('side',this)">🥬 사이드반찬</button>
+  <button class="nav-tab" onclick="showPage('salad',this)">🥗 샐러드</button>
+  <button class="nav-tab" onclick="showPage('sandwich',this)">🥪 샌드위치</button>
+</nav>
+
+
+<!-- ▸ 밥·죽 -->
+<div class="page active" id="page-rice"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">볶음밥</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">계란 볶음밥</div><div class="card-key">핵심재료: 계란 + 간장</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">계란 2개</span><span class="ing">대파</span><span class="ing">간장</span><span class="ing">참기름</span><span class="ing">소금·후추</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>달군 팬에 기름 두르고 대파 볶기</li>
+      <li>계란 풀어 넣고 반숙 스크램블 만들기</li>
+      <li>밥 넣고 세불에서 빠르게 볶기</li>
+      <li>간장 + 소금·후추로 간, 참기름으로 마무리</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">김치 볶음밥</div><div class="card-key">핵심재료: 묵은김치 + 참치 + 계란</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">묵은김치</span><span class="ing">참치 또는 햄</span><span class="ing">계란</span><span class="ing">김칫국물</span><span class="ing">참기름</span><span class="ing">김가루</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>김치 잘게 썰어 기름에 볶기</li>
+      <li>참치(기름 빼고) 또는 햄 넣고 함께 볶기</li>
+      <li>밥 + 김칫국물 넣고 세불에서 볶기</li>
+      <li>참기름 두르고 계란후라이 올리기, 김가루 뿌려 마무리</li>
+    </ol><div class="tip">💡 묵은 김치일수록 깊은 맛. 김칫국물이 간과 색깔을 잡아줌</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag fusion">퓨전</span><span class="tag simple">간단</span></div>
+      <div class="card-title">바질페스토 볶음밥</div><div class="card-key">핵심재료: 바질페스토 + 마늘</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">바질페스토</span><span class="ing">마늘</span><span class="ing">계란</span><span class="ing">레드페퍼</span><span class="ing">파마산치즈</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>달군 팬에 올리브오일 + 마늘 볶기</li>
+      <li>밥 + 레드페퍼 넣고 볶기</li>
+      <li>계란 스크램블 만들어 함께 볶기</li>
+      <li>불 끄기 직전 바질페스토 넣고 빠르게 섞기</li>
+      <li>파마산 치즈 뿌려 마무리</li>
+    </ol><div class="tip">💡 페스토는 불 끄고 넣어야 향이 살아있음</div></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">덮밥</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">소고기 스테이크 덮밥</div><div class="card-key">핵심재료: 소고기 + 버터 간장소스</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">소고기(등심/안심)</span><span class="ing">버터</span><span class="ing">간장</span><span class="ing">알룰로스</span><span class="ing">마늘</span><span class="ing">계란노른자</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>고기 상온 30분 두고 키친타올로 수분 제거</li>
+      <li>강불 팬에 오일 두르고 양면 2분씩 굽기</li>
+      <li>버터 + 마늘 넣고 바스팅하며 1분</li>
+      <li>5분 레스팅 후 썰기</li>
+      <li>간장:알룰로스:버터 소스 만들어 밥 위에 올리기</li>
+      <li>계란노른자 올려 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag creamy">진한맛</span></div>
+      <div class="card-title">카레 덮밥</div><div class="card-key">핵심재료: 카레루 + 야채</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">카레루</span><span class="ing">감자</span><span class="ing">당근</span><span class="ing">양파</span><span class="ing">고기 또는 새우</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>야채 + 고기 기름에 볶기</li>
+      <li>물 붓고 야채 익을 때까지 끓이기</li>
+      <li>불 줄이고 카레루 넣어 녹이기</li>
+      <li>5분 더 끓여 농도 맞추기</li>
+      <li>밥 위에 올려 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag umami">감칠맛</span><span class="tag spicy">매콤</span></div>
+      <div class="card-title">두부달걀볶음 덮밥</div><div class="card-key">핵심재료: 두부 + 계란 + 굴소스</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">두부</span><span class="ing">달걀 3개</span><span class="ing">굴소스 3스푼</span><span class="ing">간장·설탕·맛술</span><span class="ing">청/홍피망</span><span class="ing">청양고추·대파·전분</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>소스: 물200ml + 굴소스3 + 설탕1 + 맛술1 + 간장1 + 전분1 섞기</li>
+      <li>두부 사각 썰고 계란물 1/3 버무려 기름에 볶기</li>
+      <li>나머지 계란물 부어 스크램블처럼 볶고 따로 담기</li>
+      <li>같은 팬에 대파·청양고추·마늘 볶다가 양파·피망 추가</li>
+      <li>소스 붓고 쫀득해지면 두부계란볶음 넣어 버무리기</li>
+      <li>밥 위에 올려 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">토마토달걀볶음 덮밥</div><div class="card-key">핵심재료: 토마토 + 계란</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">닭다리살</span><span class="ing">방울토마토</span><span class="ing">마늘</span><span class="ing">간장</span><span class="ing">굴소스</span><span class="ing">알룰로스</span><span class="ing">레드페퍼</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>닭 한입 크기로 썰어 간장·마늘에 10분 재우기</li>
+      <li>팬에 노릇하게 굽기</li>
+      <li>방울토마토 반으로 잘라 넣고 함께 볶기</li>
+      <li>굴소스 + 알룰로스 + 레드페퍼 소스 넣기</li>
+      <li>토마토 터질 때까지 볶다가 밥 위에 올리기</li>
+    </ol><div class="tip">💡 토마토 수분이 자연스러운 소스가 됨</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag light">담백</span></div>
+      <div class="card-title">양배추 참치덮밥</div><div class="card-key">핵심재료: 양배추 + 굴소스</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">양배추</span><span class="ing">참치</span><span class="ing">다진마늘</span><span class="ing">굴소스</span><span class="ing">깻잎</span><span class="ing">계란</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>양배추 채썰기</li>
+      <li>마늘 + 굴소스 + 참치 볶기</li>
+      <li>양배추 넣고 함께 볶기</li>
+      <li>깻잎 채썰어 올리고 계란후라이 얹어 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag umami">감칠맛</span><span class="tag fusion">일본풍</span></div>
+      <div class="card-title">장어덮밥</div><div class="card-key">핵심재료: 시판 장어 밀키트</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">구운장어</span><span class="ing">간장</span><span class="ing">미림</span><span class="ing">청주</span><span class="ing">설탕</span><span class="ing">산초가루 선택</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>타레소스: 간장2 + 미림2 + 청주1 + 설탕1 냄비에 넣고 끓여 졸이기</li>
+      <li>장어 에어프라이어 또는 오븐에 180°C 5분 데우기</li>
+      <li>따뜻한 밥 위에 장어 올리기</li>
+      <li>타레소스 넉넉히 뿌리고 산초가루 뿌려 서브</li>
+    </ol><div class="tip">💡 마트 구운장어 팩으로 간단하게. 소스를 충분히 졸여야 깊은 맛</div></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">죽</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">오트밀 죽</div><div class="card-key">핵심재료: 오트밀 + 우유/두유</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">오트밀 1/2컵</span><span class="ing">우유 또는 두유</span><span class="ing">바나나</span><span class="ing">꿀</span><span class="ing">견과류 선택</span><span class="ing">시나몬 선택</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>냄비에 오트밀 + 우유(또는 두유) 1컵 넣고 중불 가열</li>
+      <li>저어가며 3~4분 끓여 원하는 농도로 맞추기</li>
+      <li>그릇에 담고 바나나 + 꿀 + 견과류 올리기</li>
+      <li>시나몬 뿌려 마무리</li>
+    </ol><div class="tip">💡 전날 밤 냉장고에 오트밀+우유 담아두면 아침에 바로 먹는 오버나이트 오츠로도 OK</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag fusion">일본풍</span><span class="tag light">담백</span></div>
+      <div class="card-title">오차즈케</div><div class="card-key">핵심재료: 밥 + 녹차 + 연어/도미</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">녹차 또는 다시국물</span><span class="ing">연어 또는 도미</span><span class="ing">김</span><span class="ing">와사비</span><span class="ing">참깨</span><span class="ing">오차즈케 분말 선택</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>밥 그릇에 따뜻한 밥 담기</li>
+      <li>생연어(또는 구운 생선) 위에 올리기</li>
+      <li>뜨거운 녹차 또는 다시국물 붓기</li>
+      <li>김 + 참깨 + 와사비 올려 서브</li>
+    </ol><div class="tip">💡 오차즈케 분말 하나면 훨씬 간단. 남은 밥 처리하기에도 딱</div></div>
+  </div>
+
+</div></div><!-- /밥·죽 -->
+
+
+<!-- ▸ 면·파스타 -->
+<div class="page" id="page-noodle"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">🌀 푸실리</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">샐러드 파스타</div><div class="card-key">핵심재료: 유자폰즈 + 방울토마토 + 모짜렐라 + 오이</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">푸실리</span><span class="ing">오이</span><span class="ing">방울토마토</span><span class="ing">모짜렐라치즈</span><span class="ing">유자폰즈</span><span class="ing">레몬즙</span><span class="ing">파마산치즈가루</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>푸실리 삶아 찬물에 헹궈 식히기</li>
+      <li>오이 반달썰기, 방울토마토 반으로 자르기</li>
+      <li>유자폰즈 + 레몬즙 + 올리브오일로 드레싱 만들기</li>
+      <li>모든 재료 섞고 파마산 가루로 마무리</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag creamy">크리미</span><span class="tag light">담백</span></div>
+      <div class="card-title">리코타 레몬 파스타</div><div class="card-key">핵심재료: 리코타치즈 + 레몬</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">푸실리</span><span class="ing">리코타치즈</span><span class="ing">계란노른자</span><span class="ing">루꼴라</span><span class="ing">레몬제스트</span><span class="ing">레몬즙</span><span class="ing">소금·후추</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>파스타 삶기 (면수 한 컵 따로 보관)</li>
+      <li>리코타 + 계란노른자 + 레몬즙 + 제스트 섞기</li>
+      <li>뜨거운 파스타에 소스 넣고 면수로 농도 조절</li>
+      <li>루꼴라 올리고 소금·후추로 마무리</li>
+    </ol><div class="tip">💡 면수가 소스와 파스타를 이어주는 핵심</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag onepan">원팬</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">바질페스토 새우 파스타</div><div class="card-key">핵심재료: 바질페스토 + 새우</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료 (1인분)</div>
+      <div class="ings"><span class="ing">통밀푸실리</span><span class="ing">새우 7마리</span><span class="ing">양파 1/2</span><span class="ing">느타리버섯</span><span class="ing">버터 20g</span><span class="ing">바질페스토 2스푼</span><span class="ing">굴소스 1스푼</span><span class="ing">멸치액젓 0.5스푼</span><span class="ing">물 700ml</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>새우 찬물에 5분 해동 / 양파 채썰기 / 느타리버섯 찢기</li>
+      <li>팬에 면 + 새우 + 양파 + 버섯 + 버터 모두 넣기</li>
+      <li>굴소스 1 + 멸치액젓 0.5 + 물 700ml 붓기</li>
+      <li>14분 끓이며 중간에 저어주기</li>
+      <li>수분 줄면 바질페스토 2스푼 + 올리브유 2스푼 넣고 섞기</li>
+    </ol><div class="tip">💡 푸실리는 소스가 틈새에 잘 배어 더 진한 맛</div></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">🍝 스파게티</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">클래식</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">새우 알리오올리오</div><div class="card-key">핵심재료: 마늘 + 올리브오일 + 레몬</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료 (2인분)</div>
+      <div class="ings"><span class="ing">스파게티</span><span class="ing">올리브오일 1컵</span><span class="ing">마늘 12쪽</span><span class="ing">새우</span><span class="ing">레드페퍼</span><span class="ing">파슬리</span><span class="ing">파마산치즈</span><span class="ing">레몬 1개</span><span class="ing">참치액젓 1스푼</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>소금 끓는 물에 스파게티 8분 알단테로 삶기 (면수 보관)</li>
+      <li>올리브오일 + 마늘 슬라이스 중약불에서 황금빛까지 볶기</li>
+      <li>레드페퍼 + 파슬리 + 새우 + 참치액젓 넣기</li>
+      <li>파스타 + 면수 넣고 버무리기</li>
+      <li>불 끄고 파마산 + 레몬즙 뿌려 마무리</li>
+    </ol><div class="tip">💡 올리브유 + 마늘 + 면수 + 레몬즙 조합이 핵심. 크림 없이도 꾸덕하게</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag fusion">일본풍</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">시오콘부 버터 파스타</div><div class="card-key">핵심재료: 시오콘부 + 버터</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">스파게티</span><span class="ing">시오콘부</span><span class="ing">버터</span><span class="ing">마늘</span><span class="ing">참치액젓 0.5스푼</span><span class="ing">올리브오일</span><span class="ing">양배추/새우 선택</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>파스타 삶기 (면수 보관)</li>
+      <li>올리브오일에 마늘 볶기</li>
+      <li>양배추·새우 있으면 추가해 볶기</li>
+      <li>면 + 면수 넣고 졸이기</li>
+      <li>버터 한 조각 + 시오콘부 넣고 섞기</li>
+    </ol><div class="tip">💡 참치액젓이 감칠맛의 핵심. 양배추 넣으면 더 든든</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag fusion">퓨전</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">오코노미야끼st 새우 파스타</div><div class="card-key">핵심재료: 양배추 + 굴소스 + 새우 + 계란후라이</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">스파게티</span><span class="ing">냉동새우</span><span class="ing">양배추</span><span class="ing">마늘</span><span class="ing">레드페퍼</span><span class="ing">간장2:알룰로스1:굴소스0.5</span><span class="ing">마요네즈</span><span class="ing">계란후라이</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>스파게티 삶기</li>
+      <li>올리브오일 + 마늘 + 양배추 채썰어 + 레드페퍼 볶기</li>
+      <li>새우 추가 후 간장2:알룰로스1:굴소스0.5 소스 넣기</li>
+      <li>면 넣고 볶기</li>
+      <li>마요네즈 뿌리고 계란후라이 올려 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag onepan">원팬</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">바질페스토 새우 파스타</div><div class="card-key">핵심재료: 바질페스토 + 새우</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료 (1인분)</div>
+      <div class="ings"><span class="ing">통밀스파게티</span><span class="ing">새우 7마리</span><span class="ing">양파 1/2</span><span class="ing">느타리버섯</span><span class="ing">버터 20g</span><span class="ing">바질페스토 2스푼</span><span class="ing">굴소스 1스푼</span><span class="ing">멸치액젓 0.5스푼</span><span class="ing">물 700ml</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>새우 찬물에 5분 해동 / 양파 채썰기 / 느타리버섯 찢기</li>
+      <li>팬에 면 + 새우 + 양파 + 버섯 + 버터 모두 넣기</li>
+      <li>굴소스 1 + 멸치액젓 0.5 + 물 700ml 붓기</li>
+      <li>14분 끓이며 중간에 저어주기</li>
+      <li>수분 줄면 바질페스토 2스푼 + 올리브유 2스푼 넣고 섞기</li>
+    </ol><div class="tip">💡 스파게티는 더 길게 졸여야 면에 소스가 잘 배어듦</div></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">🍜 국수</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">멸치 잔치국수</div><div class="card-key">핵심재료: 소면 + 멸치육수</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">소면</span><span class="ing">멸치육수</span><span class="ing">계란지단</span><span class="ing">김</span><span class="ing">대파</span><span class="ing">국간장</span><span class="ing">참기름</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>멸치 육수 끓여 국간장 + 소금으로 간 맞추기</li>
+      <li>소면 삶아 찬물에 헹구기</li>
+      <li>그릇에 면 담고 육수 붓기</li>
+      <li>계란지단 + 김 + 대파 올리고 참기름 한 방울</li>
+    </ol><div class="tip">💡 면을 찬물에 충분히 헹궈야 쫄깃한 식감</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">비빔국수</div><div class="card-key">핵심재료: 소면 + 고추장 양념</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">소면</span><span class="ing">고추장</span><span class="ing">간장</span><span class="ing">식초</span><span class="ing">알룰로스</span><span class="ing">참기름</span><span class="ing">오이</span><span class="ing">계란후라이</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>양념: 고추장2 + 간장1 + 식초1 + 알룰로스1 + 참기름 + 마늘 섞기</li>
+      <li>소면 삶아 찬물에 헹구기</li>
+      <li>면에 양념 넣고 고루 버무리기</li>
+      <li>오이 채썰어 올리고 계란후라이 얹어 서브</li>
+    </ol><div class="tip">💡 식초가 새콤한 맛의 핵심. 먹기 직전에 버무려야 면이 불지 않음</div></div>
+  </div>
+
+</div></div><!-- /면·파스타 -->
+
+
+<!-- ▸ 국·찌개 -->
+<div class="page" id="page-soup"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">국</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">미역국</div><div class="card-key">핵심재료: 미역 + 소고기 + 참기름</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">건미역</span><span class="ing">소고기 또는 홍합</span><span class="ing">참기름</span><span class="ing">국간장</span><span class="ing">마늘</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>미역 물에 불리고 먹기 좋게 썰기</li>
+      <li>참기름에 미역 + 마늘 + 고기 볶기</li>
+      <li>물 넣고 20분 이상 끓이기</li>
+      <li>국간장으로 간 맞추기</li>
+    </ol><div class="tip">💡 미역을 참기름에 먼저 볶아야 고소한 맛이 살아남</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">황태 북엇국</div><div class="card-key">핵심재료: 황태 + 계란</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">황태채</span><span class="ing">계란</span><span class="ing">두부</span><span class="ing">대파</span><span class="ing">참기름</span><span class="ing">국간장</span><span class="ing">마늘</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>황태채 물에 불렸다가 참기름에 볶기</li>
+      <li>물 붓고 마늘 + 두부 넣어 끓이기</li>
+      <li>계란 풀어 넣고 대파 썰어 넣기</li>
+      <li>국간장 + 소금으로 간 맞추기</li>
+    </ol><div class="tip">💡 해장에 최고. 황태를 참기름에 볶으면 비린내 없고 고소함</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag light">담백</span></div>
+      <div class="card-title">계란국</div><div class="card-key">핵심재료: 계란 + 멸치육수</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">계란 2개</span><span class="ing">멸치육수</span><span class="ing">대파</span><span class="ing">국간장</span><span class="ing">소금</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>멸치육수 끓이기</li>
+      <li>국간장 + 소금으로 간 맞추기</li>
+      <li>계란 풀어 천천히 넣으며 젓기</li>
+      <li>대파 썰어 넣고 바로 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">찌개</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">김치찌개 (돼지고기)</div><div class="card-key">핵심재료: 묵은김치 + 돼지고기</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">묵은김치</span><span class="ing">돼지고기</span><span class="ing">두부</span><span class="ing">대파</span><span class="ing">고춧가루</span><span class="ing">마늘</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>돼지고기 + 김치 기름에 함께 볶기</li>
+      <li>물 붓고 고춧가루 + 마늘 넣어 끓이기</li>
+      <li>두부 + 대파 넣고 10분 더 끓이기</li>
+    </ol><div class="tip">💡 고기 먼저 볶아 지방 녹이면 국물이 훨씬 진해짐</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag spicy">매콤</span><span class="tag simple">간단</span></div>
+      <div class="card-title">김치찌개 (참치)</div><div class="card-key">핵심재료: 묵은김치 + 참치</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">묵은김치</span><span class="ing">참치캔</span><span class="ing">두부</span><span class="ing">대파</span><span class="ing">마늘</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>김치 기름에 먼저 볶기</li>
+      <li>물 + 참치 (기름째로) 넣고 끓이기</li>
+      <li>두부 + 대파 넣고 10분 더 끓이기</li>
+    </ol><div class="tip">💡 참치 기름을 같이 넣으면 국물이 더 진하고 깊어짐</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag umami">감칠맛</span><span class="tag light">구수</span></div>
+      <div class="card-title">된장찌개 (고기)</div><div class="card-key">핵심재료: 된장 + 돼지고기</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">된장</span><span class="ing">돼지고기</span><span class="ing">두부</span><span class="ing">대파</span><span class="ing">마늘</span><span class="ing">청양고추</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>멸치 육수 끓이기</li>
+      <li>된장 풀고 고기 넣어 끓이기</li>
+      <li>두부 + 대파 + 마늘 + 청양고추 넣기</li>
+      <li>중불에서 10분 끓이기</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag umami">구수</span></div>
+      <div class="card-title">된장찌개 (애호박)</div><div class="card-key">핵심재료: 된장 + 애호박</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">된장</span><span class="ing">애호박</span><span class="ing">두부</span><span class="ing">대파</span><span class="ing">마늘</span><span class="ing">양파</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>멸치 육수 끓이기</li>
+      <li>된장 풀고 애호박 + 양파 넣기</li>
+      <li>두부 + 대파 + 마늘 넣기</li>
+      <li>중불에서 10분 끓이기</li>
+    </ol></div>
+  </div>
+
+</div></div><!-- /국·찌개 -->
+
+
+<!-- ▸ 메인반찬 -->
+<div class="page" id="page-main"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">고기</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag umami">감칠맛</span></div>
+      <div class="card-title">돼지고기 간장 탕수육</div><div class="card-key">핵심재료: 돼지 앞다리살</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">돼지앞다리살</span><span class="ing">전분</span><span class="ing">간장</span><span class="ing">식초</span><span class="ing">설탕</span><span class="ing">양파·피망</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>고기 한입 크기로 썰고 간장·마늘·후추 밑간 10분</li>
+      <li>전분 묻혀 기름에 두 번 튀기기 (150°C → 180°C)</li>
+      <li>소스: 간장2:식초1:설탕1:물3 끓이다가 전분물로 농도 내기</li>
+      <li>야채 볶다가 소스 붓고 튀김 올려 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">해산물</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">양배추 참치쌈</div><div class="card-key">핵심재료: 양배추 + 쌈장</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">양배추</span><span class="ing">참치</span><span class="ing">대파</span><span class="ing">다진마늘</span><span class="ing">쌈장</span><span class="ing">설탕</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>참치 기름 빼고 대파·마늘 다지기</li>
+      <li>쌈장 조금 + 설탕으로 속 양념하기</li>
+      <li>양배추 잎에 참치 속 올려 쌈 싸서 먹기</li>
+    </ol></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">두부</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag light">담백</span></div>
+      <div class="card-title">두부구이</div><div class="card-key">핵심재료: 두부</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">두부</span><span class="ing">간장</span><span class="ing">참기름</span><span class="ing">파</span><span class="ing">김·젓갈 선택</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>두부 키친타올로 수분 제거</li>
+      <li>기름 두른 팬에 노릇하게 양면 굽기</li>
+      <li>간장 + 참기름 + 파 소스 뿌리기</li>
+      <li>김 + 젓갈과 함께 서브</li>
+    </ol></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">계란</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag light">담백</span></div>
+      <div class="card-title">대파 계란말이</div><div class="card-key">핵심재료: 계란 + 대파</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">계란 3개</span><span class="ing">대파</span><span class="ing">소금</span><span class="ing">참기름</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>계란 풀고 소금 + 대파 썰어 섞기</li>
+      <li>기름 두른 팬에 계란물 1/3 붓기</li>
+      <li>반 익으면 한쪽으로 말기</li>
+      <li>남은 계란물 2회 반복해 3겹 만들기</li>
+      <li>식으면 썰어 서브</li>
+    </ol><div class="tip">💡 약불에서 천천히 해야 속까지 골고루 익음</div></div>
+  </div>
+
+</div></div><!-- /메인반찬 -->
+
+
+<!-- ▸ 사이드반찬 -->
+<div class="page" id="page-side"><div class="grid">
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag fusion">일본풍</span><span class="tag light">새콤</span></div>
+      <div class="card-title">오이탕탕이</div><div class="card-key">핵심재료: 시오콘부 + 오이</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">오이 2개</span><span class="ing">시오콘부 23g</span><span class="ing">통마늘 3알</span><span class="ing">설탕 1스푼</span><span class="ing">식초 1스푼</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>오이 4등분 후 지퍼백에 넣기</li>
+      <li>다진 마늘 + 설탕 + 식초 + 시오콘부 함께 넣기</li>
+      <li>잘 섞어 냉장고에 1시간 숙성</li>
+    </ol><div class="tip">💡 만들어두면 며칠 반찬으로 OK. 시오콘부 감칠맛이 핵심</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag creamy">치즈</span></div>
+      <div class="card-title">옥수수 치즈전</div><div class="card-key">핵심재료: 옥수수 통조림 + 모짜렐라</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">옥수수 반통</span><span class="ing">부침가루 3T</span><span class="ing">물 3T</span><span class="ing">모짜렐라치즈</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>옥수수 + 부침가루 + 물 3T 섞기</li>
+      <li>기름 두른 팬에 반죽 올리기</li>
+      <li>모짜렐라 치즈 뿌리고 뚜껑 덮어 익히기</li>
+      <li>뒤집어 양면 노릇하게 굽기</li>
+    </ol></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag fusion">이탤리언</span></div>
+      <div class="card-title">양배추 스테이크</div><div class="card-key">핵심재료: 양배추 + 발사믹</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">양배추</span><span class="ing">올리브오일</span><span class="ing">콘</span><span class="ing">레드페퍼</span><span class="ing">발사믹식초</span><span class="ing">파마산치즈</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>양배추 1cm 두께로 원형 슬라이스</li>
+      <li>올리브오일 바르고 양면 구워 갈색 자국 내기</li>
+      <li>콘 + 레드페퍼 + 발사믹 식초 소스 만들기</li>
+      <li>양배추 위에 올리고 파마산 치즈 뿌리기</li>
+    </ol></div>
+  </div>
+
+</div></div><!-- /사이드반찬 -->
+
+
+<!-- ▸ 샐러드 -->
+<div class="page" id="page-salad"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">포케 스타일 (밥 베이스)</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag fusion">퓨전</span></div>
+      <div class="card-title">참치 포케볼</div><div class="card-key">핵심재료: 참치 + 그릭요거트</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">밥</span><span class="ing">참치</span><span class="ing">그릭요거트 2스푼</span><span class="ing">다진토마토</span><span class="ing">양파</span><span class="ing">올리브오일</span><span class="ing">다진마늘</span><span class="ing">후추</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>그릭요거트 + 올리브오일 + 다진마늘 + 후추 섞어 소스 만들기</li>
+      <li>참치 기름 빼고 토마토·양파 잘게 다지기</li>
+      <li>소스에 참치 + 야채 섞기</li>
+      <li>밥 위에 올려 포케볼로 서브</li>
+    </ol><div class="tip">💡 통밀 크래커에 얹으면 브런치, 밥 위에 올리면 포케볼</div></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">파스타 샐러드 (면 베이스)</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">샐러드 파스타</div><div class="card-key">핵심재료: 유자폰즈 + 방울토마토 + 모짜렐라 + 오이</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">푸실리</span><span class="ing">오이</span><span class="ing">방울토마토</span><span class="ing">모짜렐라치즈</span><span class="ing">유자폰즈</span><span class="ing">레몬즙</span><span class="ing">파마산치즈가루</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>푸실리 삶아 찬물에 헹궈 식히기</li>
+      <li>오이 반달썰기, 방울토마토 반으로 자르기</li>
+      <li>유자폰즈 + 레몬즙 + 올리브오일로 드레싱 만들기</li>
+      <li>모든 재료 섞고 파마산 가루로 마무리</li>
+    </ol></div>
+  </div>
+
+  <div class="sub-head"><span class="sub-label">그린 샐러드 (채소 베이스)</span><div class="sub-line"></div></div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag simple">간단</span><span class="tag light">담백</span></div>
+      <div class="card-title">그린 샐러드</div><div class="card-key">핵심재료: 콘 + 베이컨 + 삶은계란 + 오이 + 유자폰즈</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">샐러드채소믹스</span><span class="ing">콘</span><span class="ing">베이컨</span><span class="ing">삶은계란</span><span class="ing">유자폰즈 드레싱</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>베이컨 바삭하게 구워 잘게 부수기</li>
+      <li>계란 삶아 4등분</li>
+      <li>채소 + 콘 + 베이컨 + 계란 볼에 담기</li>
+      <li>유자폰즈 드레싱으로 마무리</li>
+    </ol></div>
+  </div>
+
+</div></div><!-- /샐러드 -->
+
+
+<!-- ▸ 샌드위치 -->
+<div class="page" id="page-sandwich"><div class="grid">
+
+  <div class="sub-head"><span class="sub-label">🥛 그릭요거트 베이스</span><div class="sub-line"></div></div>
+
+  <!-- 요거트 에그 브런치 -->
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag creamy">크리미</span><span class="tag light">담백</span></div>
+      <div class="card-title">요거트 에그 브런치</div><div class="card-key">핵심재료: 그릭요거트 + 삶은계란</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">바게트 또는 크래커</span><span class="ing">그릭요거트 2스푼</span><span class="ing">삶은계란 2개</span><span class="ing">다진마늘</span><span class="ing">레몬즙</span><span class="ing">레드페퍼</span><span class="ing">올리브오일</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>삶은 계란 으깨기</li>
+      <li>그릭요거트 + 다진마늘 + 레몬즙 + 올리브오일 섞기</li>
+      <li>계란 넣고 레드페퍼로 마무리</li>
+      <li>바게트 슬라이스 또는 크래커 위에 올려 서브</li>
+    </ol><div class="tip">💡 토스트한 바게트에 올리면 식감 대비가 좋음</div></div>
+  </div>
+
+  <!-- 요거트 오이크래미 오픈샌드위치 -->
+  <div class="card">
+    <div class="card-top">
+      <div class="card-tags"><span class="tag light">담백</span><span class="tag simple">간단</span></div>
+      <div class="card-title">요거트 오이크래미 오픈샌드위치</div><div class="card-key">핵심재료: 그릭요거트 + 오이 + 크래미</div>
+    </div>
+    <div class="card-body">
+      <div class="ing-label">재료</div>
+      <div class="ings"><span class="ing">바게트 또는 크래커</span><span class="ing">그릭요거트 2스푼</span><span class="ing">오이</span><span class="ing">크래미(맛살)</span><span class="ing">레몬즙</span><span class="ing">올리브오일</span><span class="ing">딜 또는 후추</span></div>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▾ 레시피 보기</button>
+    </div>
+    <div class="card-detail"><ol class="steps">
+      <li>오이 얇게 슬라이스, 크래미 결대로 찢기</li>
+      <li>그릭요거트 + 레몬즙 + 올리브오일 섞어 스프레드 만들기</li>
+      <li>빵 위에 스프레드 바르기</li>
+      <li>오이 + 크래미 올리고 딜 또는 후추로 마무리</li>
+    </ol><div class="tip">💡 오이를 소금에 절였다 물기 빼면 더 아삭함</div></div>
+  </div>
+
+</div></div><!-- /샌드위치 -->
+
+
+<footer>Yunju's Kitchen &nbsp;•&nbsp; Made with ♡</footer>
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleDetail(btn) {
+  const detail = btn.closest('.card').querySelector('.card-detail');
+  const isOpen = detail.classList.contains('open');
+  detail.classList.toggle('open', !isOpen);
+  btn.textContent = isOpen ? '▾ 레시피 보기' : '▴ 닫기';
+}
+</script>
+</body>
+</html>
